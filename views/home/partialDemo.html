@@ -1,0 +1,84 @@
+<h2>Demonstration of partial view and parial render</h2>
+<pre>
+  There are two demo in this section.
+  1. renderPartial is used when action will be called to generate model as full cycle of VMC
+    With renderPartial there is option to refresh the view automatically.
+    It will be render after the main view showed
+  2. partialView is used if action is not needed, view will be rendered directly.
+    It will be render together with the view.
+    It's an alias to call view engine directly $.jFormat() with some assistance in generate route.
+    Can be call to refresh manually.
+  Both partialView will be wrap inside a div tag.
+</pre>
+<div>
+  <strong>Model info: </strong>@model.info
+</div>
+<hr/>
+<h3>Demo of renderPartial</h3>
+
+<div>
+  <p>
+    <strong>renderPartial with action only</strong><br/>
+    @@renderPartial("renderPartial") renderPartial is a view and action name in this home controller
+  </p>
+  @renderPartial("renderPartial")
+  <p>
+    <strong>renderPartial with action only - refresh every 5 seconds</strong><br/>
+      @@renderPartial({action:"renderPartial",refresh:5}) renderPartial is a view and action name in this home controller
+  </p>
+  @renderPartial({action:"renderPartial",refreshTime:0})
+  <p>
+    <strong>renderPartial with action only - static id</strong><br/>
+      @@renderPartial({action:"renderPartial",refresh:5}) renderPartial is a view and action name in this home controller
+  </p>
+  @renderPartial({action:"renderPartial", id:"static"})
+</div>
+
+<hr/>
+<div>
+  <p>
+    <strong>renderPartial with action and controller</strong><br/>
+    @@renderPartial("renderPartial","home") renderPartial is a view with explicit controller
+  </p>
+  @renderPartial("renderPartial","home")
+</div>
+
+<hr/>
+<div>
+  <p>
+    <strong>renderPartial with action, controller and parameter</strong><br/>
+    @@renderPartial("renderPartial","home",{"name":"parameter","age":12}) renderPartial is a view
+    with explicit controller and parameter
+  </p>
+  @renderPartial("renderPartial","home", {"name": "@model.name","age": @model.age})
+</div>
+<hr/>
+<h3>Demo of partialView</h3>
+<div>
+  <p>
+    <strong>partialView view</strong><br/>
+    @@partialView("partialView") partialView is a view template in the context of current controller.
+    It has empty model
+  </p>
+  @partialView("partialView",@@model)
+  <p>
+    <strong>partialView view - with id</strong><br/>
+  </p>
+  @partialView("partialView",@@model,"partialViewId")
+</div>
+<hr/>
+<div>
+  <p>
+    <strong>partialView view with model</strong><br/>
+    @@partialView("partialView", {"name":"model.name", "age": 20}) partialView is a view template in the context of current controller with provided model
+  </p>
+  @partialView("partialView", {name:"@model.name", age: 20})
+</div>
+<hr/>
+<div>
+  <p>
+    <strong>partialView with controller name</strong><br/>
+    @@partialView("partialView","home",{"name":"BBB", "age": 20}) partialView is a view with explicit controller and model
+  </p>
+  @partialView("partialView","home", {name:"BBB", age: 20})
+</div>

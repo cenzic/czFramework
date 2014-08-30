@@ -1,0 +1,167 @@
+<script src="../js/jquery-1.9.1.js"></script>
+<script>
+/**
+ * parsing a string to get arguments of a function
+ * Cannot simply using split base on comma, since a string may contains commas as its value.
+ * and object or array will have commas as separators.
+ * the approach will loop through the string to identify string, array or object.
+ * try to handle primary types: string, int, float, boolean, null, array, objects.
+ */
+function parseFunctionArguments(str){
+  var arr = [];
+  str = $.trim(str);
+  var flags = [];
+  //replace all escape quote and double quote before processing
+  str = str.replace(/\\'/g,'#sq#').replace(/\\"/g,'#dq#');
+
+  var flag, count, tmp;
+  function reset(){
+    flag = null;
+    count = 0;
+    tmp = "";
+  }
+  reset();
+  function revert(){
+    tmp = tmp.replace(/#sq#/g,"\\'").replace(/#dq#/g,"\\\"");
+  }
+  var specialCase = false;
+  for(var i = 0; i < str.length; i++){
+    var char = str.charAt(i);
+    tmp += char;
+    switch(char){
+    case "[" :
+      if(flag==null || flag == "array"){
+        console.log("process array start");
+        if(flag==null) tmp = "[";
+        flag = "array";
+        count++;
+      }
+      break;
+    case "]" :
+      if(flag=="array"){
+        console.log("process array end");
+        count--;
+        console.log("count: %d",count);
+        if(count==0){
+          //array done
+          revert();
+          arr.push(JSON.parse(tmp));
+          reset();
+          specialCase = true;
+        }
+      }
+      break;
+    case "{" :
+      if(flag == null || flag == "object"){
+        console.log("process object start");
+        if(flag==null) tmp = "{";
+        flag = "object";
+        count++;
+      }
+      break;
+    case "}" :
+      if(flag == "object"){
+        console.log("process object end");
+        count--;
+        if(count==0){
+          //object done
+          revert();
+          console.log("tmp: %s", tmp);
+          arr.push(JSON.parse(tmp.replace(/(\w+?)\s*?:/g,"\"$1\":")));
+          reset();
+          specialCase = true;
+        }
+      }
+      break;
+    case "\"" :
+      if(flag == null){
+        console.log("process string start 1");
+        flag = "string1";
+        tmp = "";
+      }
+      else if(flag == "string1"){
+        console.log("process string end 1");
+        revert();
+        tmp = tmp.slice(0,-1);
+        arr.push(tmp);
+        reset();
+        specialCase = true;
+      }
+      break;
+    case "'" :
+      if(flag == null){
+        console.log("process string start 2");
+        flag = "string2";
+        tmp = "";
+      }
+      else if(flag == "string2"){
+        console.log("process string end 2");
+        revert();
+        tmp = tmp.slice(0,-1);
+        arr.push(tmp);
+        reset();
+        specialCase = true;
+      }
+      break;
+    case ",":
+      if(specialCase){
+        console.log("reset special case");
+        specialCase = false;
+        reset();
+        break;
+      }
+      if(flag == null){
+        console.log("process other primary types");
+        var val = getPrimaryValue(tmp.slice(0,-1));
+        arr.push(val);
+        reset();
+      }
+      break;
+    }
+  }
+  if(flag == null && !specialCase){
+    console.log("process other primary types");
+    var val = getPrimaryValue(tmp);
+    arr.push(val);
+    reset();
+  }
+
+  return arr;
+}
+
+/**
+ * helper function for parsing function arguments
+ */
+function getPrimaryValue(str){
+  var val = $.trim(str).toLowerCase();
+  console.log("val: %s", val);
+  switch(val){
+  case "true" : return true;
+  case "false" : return false;
+  case "":
+  case "null" : return null;
+  default:
+    var m;
+    if((m = val.match(/[0-9]+/)) && m[0]==val){
+      return parseInt(val);
+    }
+    if((m = val.match(/[0-9.]+/)) && m[0]==val){
+      return parseFloat(val);
+    }
+    throw "Invalid argument";
+  }
+}
+// 	console.log(parseFunctionArguments('"simple string"'));
+// 	console.log('"simple \\" with \\\' inside string"');
+// 	console.log(parseFunctionArguments('"simple \\" with \\\' inside string"'));
+// 	console.log(parseFunctionArguments('[1, 2, 3]'));
+// 	console.log(parseFunctionArguments('{"a": "A", "b": "B", "object": "is Object"}'));
+// 	console.log(parseFunctionArguments("123"));
+// 	console.log(parseFunctionArguments("123.34"));
+// 	console.log(parseFunctionArguments("true"));
+// 	console.log(parseFunctionArguments("false"));
+// 	console.log(parseFunctionArguments("null"));
+//  console.log(parseFunctionArguments("123cb"));
+//  console.log(parseFunctionArguments('"simple string", "other string"'));
+  console.log(parseFunctionArguments('{test:"something"}'));
+</script>

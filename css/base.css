@@ -1,0 +1,53 @@
+body{
+	background-color: #efefef;
+	font-size: 10pt;
+}
+p{
+	margin: 5px 0px;
+}
+h1{
+	margin:10px;
+	font-size: 24pt;
+}
+h2{
+	margin:7px;
+	font-size: 16pt;
+}
+h3{
+	margin:5px;
+	font-size: 12pt;
+}
+code{
+	white-spcae: pre;
+	display:block;
+	font-family: monospace;
+	font-style: italic;
+	color: #33a;	
+	margin: 5px 0px;
+}
+#page_wrapper{
+	width: 80%;
+	margin: auto;
+	boder: black 1px solid;
+}
+
+#page_header{
+	width: 100%;
+	height: 100px;
+	border: black 1px solid;
+}
+
+#page_header a{
+	text-decoration: none;
+}
+#page_body{
+	width: 100%;
+	min-height: 200px;
+	border: black 1px solid;	
+}
+
+#page_footer{
+	width: 100%;
+	border: black 1px solid;
+	text-align: center;
+}
