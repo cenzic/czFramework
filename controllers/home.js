@@ -109,21 +109,4 @@
         return {name: name, age: age};
       }
   }
-
-  /**
-   * filter apply to all actions belong to this controller
-   */
-  ctrl.filters = ["filter1"];
-  /**
-   * assign one or more filters to an action
-   * each action filter is an array, item could be name of the filter (string) or
-   * an object with key is the name of the filter and value is the array of parameter will be passed
-   * in to the filter.
-   */
-  ctrl.actionFilters = {
-      index: ["filter2",{filter3:[1,"two"]}],
-      simpleModel: ["filter2"]
-  }
-
-
-})($.jf.ctrl);
+})($.jf);

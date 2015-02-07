@@ -1,26 +1,26 @@
 <h3>Links with jFramework</h3>
 <ol id="link_demo">
-	<li>
-		<code>@@link("simpleModel" , "using action to create link")</code>
-		@link("simpleModel" , "using action to create link")
-	</li>
-	<li>
-		<code>@@link({"action":"simpleModel","controller":"home"},"passing controller and action to create link")</code>
-		@link({"action":"simpleModel","controller":"home"},"passing controller and action to create link")
-	</li>
-	<li>
-		<code>@@link({"action":"simpleModel","controller":"home", "params": {"a":"A", "b":"B"}},"passing controller and action to create link")</li></code>
-		@link({"action":"simpleModel","controller":"home", "params": {"a":"A", "b":"B"}},"passing controller and action to create link")</li>
-	<li>
-		<code>&lt;a href="@@hashPath('simpleModel')" title="custom link">custom link via hashPath - action only&lt;/a></code>
-		<a href="@hashPath('simpleModel')" title="custom link">custom link via hashPath - action only</a>
-	</li>
-	<li>
-		<code>&lt;a href='@hashPath({"action":"simpleModel","controller":"home"})' title="custom link">custom link via hashPath - action controller object&lt;/a></code>
-		<a href='@hashPath({"action":"simpleModel","controller":"home"})' title="custom link">custom link via hashPath - action controller object</a>
-	</li>
-	<li>
-		<code>&lt;a href="#home/simpleModel?name=quoc quach&age=20">manual link without helper function&lt;/a></code>
-		<a href="#home/simpleModel?name=quoc quach&age=20">manual link without helper function</a>
-	</li>
+  <li>
+    <code>@@link("simpleModel" , "using action to create link")</code>
+    @link("simpleModel" , "using action to create link")
+  </li>
+  <li>
+    <code>@@link({"action":"simpleModel","controller":"home"},"passing controller and action to create link")</code>
+    @link({"action":"simpleModel","controller":"home"},"passing controller and action to create link")
+  </li>
+  <li>
+    <code>@@link({"action":"simpleModel","controller":"home", "params": {"a":"A", "b":"B"}},"passing controller and action to create link")</li></code>
+    @link({"action":"simpleModel","controller":"home", "params": {"a":"A", "b":"B"}},"passing controller and action to create link")</li>
+  <li>
+    <code>&lt;a href="@@hashPath('simpleModel')" title="custom link">custom link via hashPath - action only&lt;/a></code>
+    <a href="@hashPath('simpleModel')" title="custom link">custom link via hashPath - action only</a>
+  </li>
+  <li>
+    <code>&lt;a href='@@hashPath({"action":"simpleModel","controller":"home"})' title="custom link">custom link via hashPath - action controller object&lt;/a></code>
+    <a href='@hashPath({"action":"simpleModel","controller":"home"})' title="custom link">custom link via hashPath - action controller object</a>
+  </li>
+  <li>
+    <code>&lt;a href="#home/simpleModel?name=quoc quach&age=20">manual link without helper function&lt;/a></code>
+    <a href="#home/simpleModel?name=quoc quach&age=20">manual link without helper function</a>
+  </li>
 </ol>

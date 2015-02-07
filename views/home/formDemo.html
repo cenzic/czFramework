@@ -1,64 +1,64 @@
 <h2>Forms with jFramework</h2>
 <div>
-	<h3>Custom form element with hashPath helper - GET method</h3>
-	<pre>
-	Using GET method will have all parameter add to url. If url becomes to large then it could cause problem for browser, 
-	and it may be distract. However, it could maintain it state and add be able to book-mark.
-</pre>
-	<code>&lt;form  id="customForm" someAtrr="other" method="get" onsubmit="$.jf.formSubmitHandler(event);" action="@@hashPath('simpleModel')"></code>
-	<form id="customForm" someAtrr="other" method="get" action="@hashPath('simpleModel')" >
-		<p>
-			<strong>Name1: </strong>
-			<input type="text" name="name"/>
-		</p>
-		<p>
-			<strong>Age: </strong>
-			<input type="text" name="age"/>
-		</p>
-		<p>
-			<input type="submit" value="submit"/>
-		</p>
-	</form>
+  <h3>Custom form element with hashPath helper - GET method</h3>
+  <div class="pre">
+  Using GET method will have all parameter add to url. If url becomes to large then it could cause problem for browser,
+  and it may be distract. However, it could maintain it state and add be able to book-mark.
+</div>
+  <code>&lt;form  id="customForm" someAtrr="other" method="get" onsubmit="$.jf.formSubmitHandler(event);" action="@@hashPath('simpleModel')"></code>
+  <form id="customForm" someAtrr="other" method="get" action="@hashPath('simpleModel')" >
+    <p>
+      <strong>Name1: </strong>
+      <input type="text" name="name"/>
+    </p>
+    <p>
+      <strong>Age: </strong>
+      <input type="text" name="age"/>
+    </p>
+    <p>
+      <input type="submit" value="submit"/>
+    </p>
+  </form>
 </div>
 <div>
-	<h3>Custom form element with hashPath helper - POST method</h3>
-	<pre>
-	Using post method to hide all submit input value. If users refresh right away, the state is able to maintain - simulate the browser
-	behavior; however, when come back later, it's no longer hold true.	
-</pre>
-	<code>&lt;form  id="customForm" someAtrr="other" method="post" onsubmit="$.jf.formSubmitHandler(event);" action="@@hashPath('simpleModel')"></code>
-	<form id="customForm" action="@hashPath('simpleModel')" method="post" someAtrr="other">
-		<p>
-			<strong>Name1: </strong>
-			<input type="text" name="name"/>
-		</p>
-		<p>
-			<strong>Age: </strong>
-			<input type="text" name="age"/>
-		</p>
-		<p>
-			<input type="submit" value="submit"/>
-		</p>
-	</form>
+  <h3>Custom form element with hashPath helper - POST method</h3>
+  <div class="pre">
+  Using post method to hide all submit input value. If users refresh right away, the state is able to maintain - simulate the browser
+  behavior; however, when come back later, it's no longer hold true.
+</div>
+  <code>&lt;form  id="customForm" someAtrr="other" method="post" onsubmit="$.jf.formSubmitHandler(event);" action="@@hashPath('simpleModel')"></code>
+  <form id="customForm" action="@hashPath('simpleModel')" method="post" someAtrr="other">
+    <p>
+      <strong>Name1: </strong>
+      <input type="text" name="name"/>
+    </p>
+    <p>
+      <strong>Age: </strong>
+      <input type="text" name="age"/>
+    </p>
+    <p>
+      <input type="submit" value="submit"/>
+    </p>
+  </form>
 </div>
 <div>
-	<h3>Custom form element with hashPath helper - POST method</h3>
-	<pre>
-	Using post method to hide all submit input value. If users refresh right away, the state is able to maintain - simulate the browser
-	behavior; however, when come back later, it's no longer hold true.	
-</pre>
-	<code>&lt;form  id="multiSelect" method="get" onsubmit="$.jf.formSubmitHandler(event);" action="@@hashPath('plainText')"></code>
-	<form id="multiSelect" action="@hashPath('plainText')" method="get">
-		<p>
-			<strong>Check1: </strong>
-			<input type="checkbox" name="checkme" value="check1"/>
-		</p>
-		<p>
-			<strong>Check2: </strong>
-			<input type="checkbox" name="checkme" value="check2"/>
-		</p>		
-		<p>
-			<input type="submit" value="submit"/>
-		</p>
-	</form>
+  <h3>Custom form element with hashPath helper - POST method</h3>
+  <div class="pre">
+  Using post method to hide all submit input value. If users refresh right away, the state is able to maintain - simulate the browser
+  behavior; however, when come back later, it's no longer hold true.
+</div>
+  <code>&lt;form  id="multiSelect" method="get" onsubmit="$.jf.formSubmitHandler(event);" action="@@hashPath('plainText')"></code>
+  <form id="multiSelect" action="@hashPath('plainText')" method="get">
+    <p>
+      <strong>Check1: </strong>
+      <input type="checkbox" name="checkme" value="check1"/>
+    </p>
+    <p>
+      <strong>Check2: </strong>
+      <input type="checkbox" name="checkme" value="check2"/>
+    </p>
+    <p>
+      <input type="submit" value="submit"/>
+    </p>
+  </form>
 </div>

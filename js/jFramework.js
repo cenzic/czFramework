@@ -674,24 +674,15 @@
       callback();
     }
     document.head.appendChild(script);
-// var script = $('<script type="text/javascript" src="'+ filePath
-// +'"></script>');
-// script.get(0).load = callback;
-// $(document.body).append(script);
   }
   /**
-   * when controller script loaded, $.jf.ctrl will be set some value;
+   * when controller script loaded, $.jf will be set some value;
    * this function will read the value, set to the controllers,
-   * then reset the temporary $.jf.ctrl;
+   * then reset the temporary $.jf;
    * @returns
    */
   function registerController(name){
-    controllers[name] = $.jf.ctrl.actions;
-    $.jf.ctrl = {
-        filters: [],
-        actionFilters: {},
-        actions:{}
-    }
+    controllers[name] = $.jf.actions;
   }
   /**
    * return route object base on current url it should answer what is the
