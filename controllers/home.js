@@ -63,37 +63,6 @@
         return "some text to be displace " + checkme.join(" ");
       },
 
-      /**
-       * jf will provide a collection of predefine template to use.
-       * This can be apply to predefined layout, grid, chart...
-       * user can add more helper templates to share across the site.
-       * to register the helper template, it need 2 parts. callback function, and view templates.
-       * it could be done in the index file.
-       */
-      helperTemplate: function(){
-        return $.jf.get("demo_models/simpleObject.txt", function(d){
-          console.log("callback is ready: %s", JSON.stringify(d));
-          var gridObj = [
-              {action: "sample_template",
-               model: d,
-               position: [1,1]
-              },
-              {action: "sample_template",
-                model: d,
-                position: [1,2]
-              },
-              {action: "sample_template",
-                model: d,
-                position: [2,1]
-              },
-              {action: "sample_template",
-               model: d,
-               position: [2,2]
-              }
-          ]
-          return $.jf.helperTemplate("grid_layout",[d,d]);
-        },"json");
-      },
       partialDemo: function(){
         return {
           name: "partial Demo name",
@@ -107,6 +76,21 @@
         name = name || Math.random().toString(36);
         age = age || Math.floor(Math.random()*100);
         return {name: name, age: age};
+      },
+      simpleGrid: function(){
+        console.log("simpleGrid");
+        var tableInfo = {
+            headers: [
+              {name:"first", description: "first column"},
+              {name:"second", description: "second column"}
+            ],
+            rows: [
+              ["a","b"],
+              ["c","d"]
+            ],
+            footers: []
+        }
+        return ctrl.helperTemplate("simple_grid",tableInfo);
       }
   }
 })($.jf);

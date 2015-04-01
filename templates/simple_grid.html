@@ -1,1 +1,29 @@
-simple grid render
+<table>
+  @if(model.headers && model.headers.length>0){
+  <thead>
+    <tr>
+    @foreach(var header in model.headers){
+      <th title="@header.description">@header.name</th>
+    }
+    </tr>
+  </thead>
+  }
+  <tbody>
+    @foreach(var row in model.rows){
+      <tr>
+        @foreach(var col in row){
+          <td>@col</td>
+        }
+      </tr>
+    }
+  </tbody>
+  @if(model.footers && model.footers.length>0){
+  <tfoot>
+    <tr>
+    @foreach(var footer in model.footers){
+      <td>@footer.name</td>
+    }
+    </tr>
+  </tfoot>
+  }
+</table>

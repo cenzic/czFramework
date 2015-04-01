@@ -30,11 +30,15 @@
           baseUrl: route.baseUrl
       });
 
-      // handle header and footer
-      $("#page_header").jFormat("#page_header_template");
-      $("#page_footer").jFormat("#page_footer_template");
+      //adding custom helper functions
+      var helperSrc = route.baseUrl + "/js/helper.js"
+      addScript(helperSrc,function(){
+     // handle header and footer
+        $("#page_header").jFormat("#page_header_template");
+        $("#page_footer").jFormat("#page_footer_template");
 
-      viewRender(route);
+        viewRender(route);
+      });
     },
     /**
      * This is the key function to handle all call backs actions is the
@@ -64,9 +68,16 @@
      */
     helperTemplate: function(helperName,model){
       console.log("helperTemplate called");
-      var template = "@templates/"+helperName;
       return function(){
-        $("#"+defaultOptions.container).jFormat(template,model,postRender);
+        var template = "@templates/"+helperName;
+        var id = guid();
+        var wrapper = $("<div>");
+        wrapper.attr("id",id);
+        $("#"+defaultOptions.container).append(wrapper);
+        wrapper.jFormat(template, model, function(formatted){
+          console.log("formatted: %s", formatted);
+          $("#"+id).html(formatted);
+        });
       }
     },
     /**
@@ -133,7 +144,7 @@
         dataType:dataType
       });
     },
-    delete: function(url,data,success,dataType){
+    "delete": function(url,data,success,dataType){
       return $.ajax(url,{
         type:"delete",
         data:data,
@@ -415,7 +426,6 @@
     });
   }
 
-
   /**
    * handle custom form submission
    */
@@ -666,13 +676,17 @@
 
     controllers[controllerName] = null;
     var filePath = defaultRoute.baseUrl + "/controllers/" + controllerName + ".js";
-    var script = document.createElement("script");
-    script.type="text/javascript";
-    script.src = filePath;
-    script.onload = function(){
+    addScript(filePath, function(){
       registerController(controllerName);
       callback();
-    }
+    });
+  }
+
+  function addScript(src,callback){
+    var script = document.createElement("script");
+    script.type="text/javascript";
+    script.src = src;
+    script.onload = callback;
     document.head.appendChild(script);
   }
   /**
