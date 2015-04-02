@@ -1,47 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
-	<script type="text/javascript" src="js/jFormat.js"></script>
-	<script type="text/javascript" src="js/jFramework.js"></script>
-	<link type="text/css" rel="stylesheet" href="css/base.css"/>
+  <script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+  <script type="text/javascript" src="js/jUtil.js"></script>
+  <script type="text/javascript" src="js/jFormat.js"></script>
+  <script type="text/javascript" src="js/jFramework.js"></script>
+  <link type="text/css" rel="stylesheet" href="css/base.css"/>
 </head>
 <body>
-	<div id="page_wrapper">
-		<div id="page_header"></div>
-		<div id="page_body"></div>
-		<div id="page_footer"></div>
-	</div>	
-	<template id="page_header_template">
-		<a href="@hashPath('')">
-			<h1>jframework Demo</h1>
-			<h3>This is a demonstration of jFramework</h3>
-		</a>		
-	</template>
-	<template id="page_footer_template">
-		<p>
-			<strong>jFramework © 2014 Quoc Quach</strong>
-		</p>
-		<p>				
-			contact information: quoc_cooc@yahoo.com
-		</p>
-	</template>
-	<script type="text/javascript">
-		/**
-		* This is the section for register new helper template				
-		$.jf.registerHelperTemplate({
-			"reference name with explicit declaration" : {
-				handler: function(){},
-				template: "name_of_template"
-			},
-			//This will assume the template name = the reference name, and the handler is the function defined.
-			"reference name simple declaration": function(){}
-		});
-		*/		
-		//This is the call to start render the page.
-		$(document).ready(function(){
-			$.jf.bootstrap();
-		});
-	</script>
+  <div id="page_wrapper">
+    <div id="page_header"></div>
+    <div id="page_body"></div>
+    <div id="page_footer"></div>
+  </div>
+  <template id="page_header_template">
+    <a href="@hashPath('')">
+      <h1>jframework Demo</h1>
+      <h3>This is a demonstration of jFramework</h3>
+    </a>
+  </template>
+  <template id="page_footer_template">
+    <p>
+      <strong>jFramework © 2014 Quoc Quach</strong>
+    </p>
+    <p>
+      contact information: quoc_cooc@yahoo.com
+    </p>
+  </template>
+  <script type="text/javascript">
+    /**
+    * This is the section for register new helper template
+    $.jf.registerHelperTemplate({
+      "reference name with explicit declaration" : {
+        handler: function(){},
+        template: "name_of_template"
+      },
+      //This will assume the template name = the reference name, and the handler is the function defined.
+      "reference name simple declaration": function(){}
+    });
+    */
+    //This is the call to start render the page.
+    $(document).ready(function(){
+      $.jf.bootstrap();
+    });
+  </script>
 </body>
 </html>

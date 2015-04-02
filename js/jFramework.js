@@ -3,6 +3,32 @@
  * page.
  */
 (function($){
+  var log = $.log.init("jFramework");
+  var defaultOptions = {
+    basePath: (function(){
+      var path = window.location.pathname;
+      path = (path.indexOf("index.html")!=-1) ? path.slice(0,-11) : path.slice(0,-1);
+      return path;
+    })(),
+    container: "page_body",
+    controller: "home",
+    action: "index",
+    actionHandler: function(){}// default action handler for any controller
+                  // that action not defined.
+  }
+
+  var defaultRoute = (function(){
+    return {
+      currentUrl: window.location.protocol + "//" + window.location.host + window.location.pathname,
+      baseUrl: window.location.protocol + "//" + window.location.host + defaultOptions.basePath,
+      controller: "home",
+      action: "index",
+      params: {},
+      getParams: {},
+      postParams: {}
+    }
+  })();
+
   $.jf = {
     /**
      * resolve the current page state to get the template and model for
@@ -12,9 +38,7 @@
       if(!$.jFormat) throw "jFormat is the requirement dependency, please add it to the index template";
 
       $.extend(defaultOptions, options);
-
-      // register helper functions for jFormat
-      $.jFormat.addHelper(viewHelpers);
+      //view helper move to helper.js
 
       // register window hash change event
       $(window).bind("hashchange",function(){
@@ -31,14 +55,15 @@
       });
 
       //adding custom helper functions
-      var helperSrc = route.baseUrl + "/js/helper.js"
-      addScript(helperSrc,function(){
-     // handle header and footer
+      var helperSrc = route.baseUrl + "/js/helpers.js";
+      var partialSrc = route.baseUrl + "/js/partial.js";
+      var loadScript = sync(function(){
         $("#page_header").jFormat("#page_header_template");
         $("#page_footer").jFormat("#page_footer_template");
-
         viewRender(route);
-      });
+      })
+      addScript(partialSrc, loadScript);
+      addScript(helperSrc, loadScript);
     },
     /**
      * This is the key function to handle all call backs actions is the
@@ -70,7 +95,7 @@
       console.log("helperTemplate called");
       return function(){
         var template = "@templates/"+helperName;
-        var id = guid();
+        var id = $.util.guid();
         var wrapper = $("<div>");
         wrapper.attr("id",id);
         $("#"+defaultOptions.container).append(wrapper);
@@ -80,37 +105,12 @@
         });
       }
     },
-    /**
-     * Expose format function to use in actions
-     */
-    format: format,
+
     /**
      * Register helper templates to use shared accross the site.
      */
     registerHelperTemplate: function(helperTemplates){
       console.log("registerHelperTemplate");
-    },
-    /**
-     * manually refresh a partial view with model provided.
-     */
-    refreshPartial: function(partialId, model){
-      if(!partialId || !partialList[partialId]) return;
-      partialList[partialId].refresh(model);
-    },
-    /**
-     * set up auto refresh a partial view with model provided.
-     */
-    autoRefresh: function(partialId, time){
-      if(!partialId || !partialList[partialId]) return;
-      partialList[partialId].refreshTime = time;
-      partialList[partialId].autoRefresh();
-    },
-    /**
-     * set up auto refresh a partial view with model provided.
-     */
-    cancelRefresh: function(partialId){
-      if(!partialId || !partialList[partialId]) return;
-      partialList[partialId].cancelRefresh();
     },
 
     // ============================== Jquery Ajax wrapper
@@ -154,7 +154,11 @@
     },
     ajax:function(url,settings){
       return $.ajax(url,settings);
-    }
+    },
+    getHashPath: getHashPath, //expose to helper function.
+    defaultRoute: defaultRoute,
+    defaultOptions: defaultOptions,
+    viewRender: viewRender
   };
 
   $.fn.refresh = function(){
@@ -162,30 +166,7 @@
   };
   // ============== private properties ========================
 
-  var defaultOptions = {
-    basePath: (function(){
-      var path = window.location.pathname;
-      path = (path.indexOf("index.html")!=-1) ? path.slice(0,-11) : path.slice(0,-1);
-      return path;
-    })(),
-    container: "page_body",
-    controller: "home",
-    action: "index",
-    actionHandler: function(){}// default action handler for any controller
-                  // that action not defined.
-  }
 
-  var defaultRoute = (function(){
-    return {
-      currentUrl: window.location.protocol + "//" + window.location.host + window.location.pathname,
-      baseUrl: window.location.protocol + "//" + window.location.host + defaultOptions.basePath,
-      controller: "home",
-      action: "index",
-      params: {},
-      getParams: {},
-      postParams: {}
-    }
-  })();
   var cancelHashChange = false;
   /**
    * This is the collections of all controller registered on the page.
@@ -196,235 +177,8 @@
   var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
   var ARGUMENT_NAMES = /([^\s,]+)/g;
 
-  var viewHelpers = {
-    /**
-     * first argument can be either string as action name or object
-     * {action:actionName: controller: controllerName, params:{key value
-     * pairs}} second argument is the text of the link;
-     */
-    link: function(routeInfo,text){
-      console.log("viewHelpers.link called");
-      if(arguments.length!=2) throw "Arguments Exception" + JSON.stringify(arguments);
-      var route = getRouteHelper(routeInfo);
-      return "<a href='"+getHashPath(route)+"'>"+text+"</a>";
-    },
-    hashPath: function(routeInfo){
-      console.log("viewHelpers.hashPath called: %s", routeInfo);
-      var route = getRouteHelper(routeInfo);
-      console.log("route: %s", JSON.stringify(route));
-      return getHashPath(route);
-    },
 
-    /**
-     * Render partial will create an wrapper element to be render later.
-     */
-    renderPartial:function(){
-      console.log("renderPartial called");
-      var route = parseRenderPartialArgs(arguments);
-      var partial = new PartialView(route);
-      return partial.getWrapper();
-    },
-
-
-
-    /**
-     * it's just a helper for jFormat partial render. the params is the
-     * model for partialView
-     */
-    partialView:function(){
-      var route = parsePartialViewArgs(arguments);
-      console.log("partialView: %s", JSON.stringify(route));
-      // var out = "$.jFormat(\"@views/" + route.controller + "/" +
-      // route.action + "\"," + JSON.stringify(route.params)+")";
-      var id = guid();
-      if(this==route.model){
-        var out = "$.jFormat(\"@views/" + route.controller + "/" + route.action + "\", @@model)";
-      }else{
-        this[id] = route.model;
-        var out = "$.jFormat(\"@views/" + route.controller + "/" + route.action + "\", @model."+id+")";
-      }
-      var partial = new PartialView(route);
-      var out = partial.preload(out);
-      console.log("partialView | out: %s", out);
-      return out;
-    }
-  }
-
-  // =========================== Partial View Class ==================================
-  var partialList = {};
-
-  function PartialView(route){
-    if(!route || !route.action || !route.controller){
-      throw "route is required for PartialView";
-    }
-    this.route = route;
-    this.id = route.id || guid();
-    partialList[this.id] = this;
-    this.refreshTime = route.refreshTime || 0;
-    this.interval = null;
-    this.wrapper = createWrapper(this.id);
-    this.isRendered = false;
-  }
-
-  PartialView.prototype = {
-    cancelRefresh: function(){
-      if(!this.interval) return;
-      clearInterval(this.interval);
-      this.interval = null;
-      this.wrapper.removeClass("refresh_on");
-      this.wrapper.addClass("refresh_off");
-    },
-    stopRefresh: this.cancelRefresh,
-    refresh: function(model){
-      this.setLoading();
-      viewRender(this.route,model,function(content){
-        console.log("renderPartialPostHandler | callback id: %s", this.id);
-        this.setLoaded(content);
-      }.bind(this));
-    },
-    autoRefresh: function(){
-      if(this.interval || !this.refreshTime) return;
-      this.interval = setInterval(function(){
-        console.log("PartialView.autoRefresh | id: %s", this.id);
-        renderPartialPostHandler(this.id);
-        this.wrapper.removeClass("refresh_off");
-        this.wrapper.addClass("refresh_on");
-      }.bind(this),this.refreshTime);
-    },
-    getWrapper: function(){
-      return this.wrapper.get(0).outerHTML;
-    },
-    setLoading: function(){
-      console.log("PartialView.setLoading");
-      // update wrapper to point to the rendered dom element.
-      this.wrapper = $("#"+this.id);
-      this.wrapper.addClass("loading");
-      this.wrapper.removeClass("loaded");
-      this.wrapper.html("loading");
-
-    },
-    setLoaded: function(html){
-      // console.log("PartialView.setLoaded: htlm: %s", html);
-      // this.wrapper = $("#"+this.id);
-      this.wrapper.addClass("loaded");
-      this.wrapper.removeClass("loading");
-      this.wrapper.html(html);
-      this.isRendered = true;
-    },
-    preload: function(html){
-      this.wrapper.addClass("loaded");
-      this.isRendered = true;
-      this.wrapper.html(html);
-      return this.getWrapper();
-    }
-  }
-
-  function createWrapper(id){
-    console.log("createWrapper | id: %s", id);
-    wrapper = $("<div>");
-    wrapper.attr("id",id);
-    wrapper.addClass("partial_view");
-    wrapper.addClass("refresh_off");
-    return wrapper;
-  }
-  /**
-   * loop through the list of partialList and call loading
-   */
-  function loadingPartial(id){
-    if(id){
-      console.log("loadingPartial with id: %s", id);
-      renderPartialPostHandler(id);
-    }
-    else{
-      console.log("loading all partial");
-      for(var i in partialList){
-        if(!partialList[i].isRendered) renderPartialPostHandler(i);
-      }
-    }
-  }
-
-  function parseRenderPartialArgs(args){
-    var route = {
-      id: "",
-      action: 'index',
-      controller: currentControllerName,
-      params: {},
-      refreshTime: 0
-    }
-
-
-    if(typeof(args[0])=="object"){
-      for(var i in route){
-        if(args[0][i]) route[i] = args[0][i];
-      }
-    }
-    else{
-      if(args.length>0){
-        route.action = args[0];
-        if(typeof(args[1]) == "string"){
-          route.controller = args[1];
-          route.params = args[2] || {};
-          route.refreshTime = args[3] || 0;
-        }else{
-          route.params = args[1] || {};
-          route.refreshTime = args[2] || 0;
-        }
-      }
-
-    }
-    return route;
-  }
-  function parsePartialViewArgs(args){
-    console.log("parsePartialViewArgs");
-    var route = {
-      id: "",
-      action: 'index',
-      controller: currentControllerName,
-      model: {}
-    }
-
-    if(typeof(args[0])=="object"){
-      for(var i in route){
-        if(args[0][i]) route[i] = args[0][i];
-      }
-    }
-    else{
-      if(args.length>0){
-        route.action = args[0];
-        if(typeof(args[1]) == "string"){
-          route.controller = args[1];
-          route.model = args[2] || {};
-          route.id = args[3] || "";
-        }else{
-          route.model = args[1] || {};
-          route.id = args[2] || "";
-        }
-      }
-    }
-    return route;
-  }
   // ========================private functions ============================
-
-  /**
-   * this function called after main body loaded, or when partialView
-   * reloaded;
-   *
-   * @param id
-   */
-  function renderPartialPostHandler(id){
-    console.log("renderPartialPostHandler | id: %s",id);
-    var partial = partialList[id];
-    partial.setLoading();
-    viewRender(partial.route,null,function(content){
-      // console.log("renderPartialPostHandler callback: %s", content);
-      console.log("renderPartialPostHandler | callback id: %s", id);
-      partial.setLoaded(content);
-      if(partial.refreshTime) {
-        console.log("call autoRefresh for Id: %s", id);
-        partial.autoRefresh();
-      }
-    });
-  }
 
   /**
    * handle custom form submission
@@ -558,17 +312,8 @@
     var jObj = $(this);
     // adding handler for forms
     jObj.find("form").bind("submit",formSubmitHandler);
-
-    // adding handler for partial view
     var id= jObj.attr("id");
-    console.log("postRender, id: %s", id);
-    if(id == defaultOptions.container){
-      loadingPartial();
-    }
-    else if(id in partialList){
-      loadingPartial(id);
-    }
-
+    $.partial.postRender(id);
   }
   function processAction(ret,template,route,callback){
     console.log("processAction ret: %s, callback: %s", typeof(ret), typeof(callback));
@@ -612,20 +357,6 @@
     }
   }
 
-  // this will set the params equal getParams
-  // it should only be use to create link for anchor or form.
-  function getRouteHelper(obj){
-    var tmpRoute;
-    if(typeof(obj)=="string"){
-      tmpRoute = {action: obj, controller: currentControllerName};
-    }
-    else{
-      tmpRoute = obj;
-    }
-    tmpRoute.getParams = $.extend({},tmpRoute.params);
-    return $.extend({}, defaultRoute, tmpRoute);
-  }
-
   function getHashPath(route){
     var queryString = getQueryString(route.getParams);
     var controller = route.controller || defaultOptions.controller;
@@ -667,7 +398,7 @@
    * twice.
    */
   function loadController(controllerName, callback){
-    currentControllerName = controllerName;
+    $.jf.currentControllerName = currentControllerName = controllerName;
     if(controllers[controllerName]!=undefined) {
       // console.log("controller already loaded");
       callback();
@@ -769,29 +500,18 @@
     return "@" + "views" + "/" + controller + "/" + action;
   }
 
-  /**
-   * helper function to format string
-   */
-  function format() {
-    var format = arguments[0] || "";
-    var match = format.match(/%s|%d|%j/g);
-    if (!match) return format;
-
-    if (match.length != arguments.length - 1) throw { name: "Argument Error", message: "Number of arguments mismatch" };
-    for (var i = 1; i < arguments.length; i++) {
-      var matchIndex = i - 1;
-      var value = (match[matchIndex] == "%j") ? JSON.stringify(arguments[i]) : arguments[i];
-      format = format.replace(match[matchIndex], value);
+  var syncCount = 0;
+  function sync(callback, args){
+    syncCount++;
+    console.log("get here");
+    return function(){
+      console.log("get here");
+      log.debug("syncCount: %s", syncCount);
+      syncCount--;
+      if(syncCount==0){
+        callback.call(this, args);
+      }
     }
-    return format;
   }
 
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000).toString(16)
-        .substring(1);
-  }
-  function guid() {
-    return s4() + s4() + '-' + s4() + '-' + s4()
-        + '-' + s4() + '-' + s4() + s4() + s4();
-  }
 })(jQuery);
