@@ -2,6 +2,7 @@
  *
  */
 (function($){
+  var log = $.log.init("helpers","warn");
   //registering new helper function for view rendering
   $.jFormat.addHelper({
     /**
@@ -10,16 +11,16 @@
      * pairs}} second argument is the text of the link;
      */
     link : function(routeInfo, text) {
-      console.log("viewHelpers.link called");
+      log.debug("viewHelpers.link called");
       if (arguments.length != 2)
         throw "Arguments Exception" + JSON.stringify(arguments);
       var route = getRouteHelper(routeInfo);
       return "<a href='" + $.jf.getHashPath(route) + "'>" + text + "</a>";
     },
     hashPath : function(routeInfo) {
-      console.log("viewHelpers.hashPath called: %s", routeInfo);
+      log.debug("viewHelpers.hashPath called: %s", routeInfo);
       var route = getRouteHelper(routeInfo);
-      console.log("route: %s", JSON.stringify(route));
+      log.debug("route: %s", JSON.stringify(route));
       return $.jf.getHashPath(route);
     }
   });

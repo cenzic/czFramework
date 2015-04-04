@@ -1,11 +1,12 @@
 /**
- * Copyright © Quoc Quach 2013-2015
+ * Copyright ï¿½ Quoc Quach 2013-2015
  * Author: Quoc Quach
  * Email: quoc_cooc@yahoo.com
  * Released under the MIT license
  * Date: 03/06/2015
  */
 (function($) {
+  var log = $.log.init("jFormat","warn");
   $.fn.jFormat = function(id, model, callback) {
     var tmp = window.model;
     window.model = model;
@@ -31,7 +32,7 @@
     t = replaceHandler(t, true);
     t = replaceProperties(t, "model");
     t = t.replace(/\{##\}/g,"@");
-    t = t.replace(/\n/g,'"+\n"');
+    t = t.replace(/\n/g,'\\n"+\n"');
     t = '"' + t + '"';
     return t;
   }
@@ -39,7 +40,7 @@
   function replaceProperties(t, name){
     var regex = new RegExp("@("+name+"((\\.\\w+)*(\\[['\"]?.+?['\"]?\\])*(\\.\\w+)*)+)","g");
     t = t.replace(regex, function(m0,m1){
-        console.log(arguments);
+        log.debug(arguments);
         return '" + helpers.htmlEscape(' + revert(m0.substr(1)) + ') + "';
       });
     return t;
@@ -80,7 +81,7 @@
   }
 
   function replaceForeach(t){
-    console.log("replaceForeach");
+    log.debug("replaceForeach");
     var r = /@foreach\(var (.+) in ([^\)]*)\)\{\n/;
     var m = r.exec(t);
     if(!m) return t;
@@ -97,7 +98,7 @@
   }
 
   function replaceForloop(t){
-    console.log("replaceForloop");
+    log.debug("replaceForloop");
     var r = /@(for\(.+\)\{)\n/;
     var m = r.exec(t);
     if(!m) return t;
@@ -126,7 +127,7 @@
     var m;
     var last = startIndex;
     while(m = r.exec(t)){
-      console.log(m[0]);
+      log.debug(m[0]);
       var next = t.indexOf(m[0], last);
       if(next!=-1 && next < end){
         last = end+1;
@@ -141,7 +142,7 @@
   //t = t.replace(/\\/,'\\\\');
   //t = t.replace(/"/g,'\\"');
   function revert(t){
-    console.log(revert);
+    log.debug(revert);
     t = t.replace(/\\{2}/g,'\\');
     t = t.replace(/\\"/g,'"');
     return t;
@@ -152,7 +153,7 @@
     var m;
     while(m = r.exec(t)){
       var startIndex = t.indexOf(m[0]);
-      console.log("replaceIf | m: %s", m[0]);
+      log.debug("replaceIf | m: %s", m[0]);
       var out = '" + (function(){' +
       'var tmp = "";' +  revert(m[1]) +
       'tmp += "';
@@ -163,7 +164,7 @@
   }
 
   function replaceElseif(t){
-    console.log("replaceElseif");
+    log.debug("replaceElseif");
     var r = /@(else if\([^\)]+\)\{)\n/;
     var m = r.exec(t);
     var startIndex = t.indexOf(m[0]);
@@ -173,7 +174,7 @@
   }
 
   function replaceElse(t){
-    console.log("replaceElse");
+    log.debug("replaceElse");
     var r = /@else\{\n/;
     var m = r.exec(t)
     var startIndex = t.indexOf(m[0]);
@@ -184,7 +185,7 @@
 
   //    t = t.replace(/\}/g,'"; } return tmp;})() + "');
   function closeStatement(t, startIndex, closed){
-    console.log("closeStatement: startIndex: %s, closed: %s", startIndex, closed);
+    log.debug("closeStatement: startIndex: %s, closed: %s", startIndex, closed);
     var closeIndex = t.indexOf("}\n",startIndex);
 
     var ifIndex = t.indexOf("@if(", startIndex);
@@ -209,16 +210,16 @@
     }
 
     if(closed){
-      console.log("closed block");
+      log.debug("closed block");
       return t.replace("}\n",'"; } return tmp;})() + "');
     }
 
     var elseifIndex = t.indexOf("@else if", startIndex);
     if(elseifIndex!=-1){
-      console.log("has else if block");
+      log.debug("has else if block");
       var tmp = t.substring(closeIndex+1,elseifIndex);
       if(!tmp.match(/\S/g,'')){
-        console.log("calling replace else if");
+        log.debug("calling replace else if");
         t = t.replace("}\n","\";}");
         t = replaceElseif(t);
         return t;
@@ -227,11 +228,11 @@
 
     var elseIndex = t.indexOf("@else{\n", startIndex);
     if(elseIndex!=-1){
-      console.log("has else block");
+      log.debug("has else block");
       var tmp = t.substring(closeIndex+1,elseIndex);
-      console.log("tmp: %s", tmp);
+      log.debug("tmp: %s", tmp);
       if(!tmp.match(/\S/g,'')){
-        console.log("calling replace else");
+        log.debug("calling replace else");
         t = t.replace("}\n","\";}");
         t = replaceElse(t);
         return t;
@@ -242,16 +243,16 @@
   }
 
   function partial(id, model){
-    console.log("partial | id: %s", id);
-    console.log(model);
+    log.debug("partial | id: %s", id);
+    //log.debug(model);
     var formatted;
     //this only work because getTemplate is in synchronous condition
     getTemplate(id, function(template){;
-      console.log("partial | getTemplate come back");
+      log.debug("partial | getTemplate come back");
       var t = replace(template);
       formatted = jEval(model, t);
     });
-    console.log("partial | return");
+    log.debug("partial | return");
     return formatted;
   }
 
@@ -265,7 +266,7 @@
 
   function jEval(model, func){
     func = "out = " + func + ";";
-    console.log(func);
+    log.debug(func);
     var out;
     eval(func);
     return out;
@@ -276,17 +277,17 @@
    * as long as template available it's eval synchronously.
    */
   function loadTemplate(id, model, callback){
-    console.log("loadTemplate: %s", id);
+    log.debug("loadTemplate: %s", id);
     var m = id.match(/model(.+)/);
     if(m){
       id = getObjectProperty(model, m[1]);
-      console.log("eval id: %s", id);
+      log.debug("eval id: %s", id);
     }
     if(id.match(/^["'].+["']$/)){
       id = id.slice(1,-1);
     }
     getTemplate(id,function(template){
-      console.log("loadTemplate | getTemplate come back id: %s", id);
+      log.debug("loadTemplate | getTemplate come back id: %s", id);
       if (template.indexOf("@partial(") != -1) {
         var regex = /@partial\((.*),.*\)/g;
         var total = template.match(regex).length;
@@ -295,7 +296,7 @@
         while(m = regex.exec(template)){
           loadTemplate(m[1], model, function(){
             count++;
-            console.log("loadTemplate | partial template count: %d id: %s", count, id);
+            log.debug("loadTemplate | partial template count: %d id: %s", count, id);
             if(count == total){
               if(callback) callback();
             }
@@ -303,7 +304,7 @@
         }
       }
       else{
-        console.log("loadTemplate | no partial, calling callback id: %s", id);
+        log.debug("loadTemplate | no partial, calling callback id: %s", id);
         if(callback) callback();
       }
     });
@@ -312,13 +313,13 @@
 
   $.jFormat = function(id, model, callback){
     loadTemplate(id, model, function(){
-      console.log("$.jFormat | load template complete, call partial");
+      log.debug("$.jFormat | load template complete, call partial");
       var formatted = partial(id, model);
       if(callback){
-        console.log("$.jFormat | calling callback");
+        log.debug("$.jFormat | calling callback");
         callback.call(this,formatted);
       }else{
-        console.log("$.jFormat | callback not defined");
+        log.debug("$.jFormat | callback not defined");
       }
       return formatted;
     });

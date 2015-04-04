@@ -10,12 +10,14 @@
     Can be call to refresh manually.
   Both partialView will be wrap inside a div tag.
 </div>
+
 <div>
   <strong>Model info: </strong>@model.info
 </div>
-<hr/>
-<h3>Demo of renderPartial</h3>
 
+<hr/>
+
+<h3>Demo of renderPartial</h3>
 <div>
   <p>
     <strong>renderPartial with action only</strong><br/>
@@ -23,18 +25,19 @@
   </p>
   @renderPartial("renderPartial")
   <p>
-    <strong>renderPartial with action only - refresh every 5 seconds</strong><br/>
-      @@renderPartial({action:"renderPartial",refresh:5}) renderPartial is a view and action name in this home controller
+    <strong>renderPartial with action only - refresh every 30 seconds</strong><br/>
+      @@renderPartial({action:"renderPartial",refresh:30000}) renderPartial is a view and action name in this home controller
   </p>
-  @renderPartial({action:"renderPartial",refreshTime:0})
+  @renderPartial({action:"renderPartial",refreshTime:3000})
   <p>
     <strong>renderPartial with action only - static id</strong><br/>
-      @@renderPartial({action:"renderPartial",refresh:5}) renderPartial is a view and action name in this home controller
+      @@renderPartial({action:"renderPartial",id: "static"}) renderPartial is a view and action name in this home controller
   </p>
   @renderPartial({action:"renderPartial", id:"static"})
 </div>
 
 <hr/>
+
 <div>
   <p>
     <strong>renderPartial with action and controller</strong><br/>
@@ -52,13 +55,13 @@
   </p>
   @renderPartial("renderPartial","home", {"name": "@model.name","age": @model.age})
 </div>
+
 <hr/>
 <h3>Demo of partialView</h3>
 <div>
   <p>
     <strong>partialView view</strong><br/>
-    @@partialView("partialView") partialView is a view template in the context of current controller.
-    It has empty model
+    @@partialView("partialView") partialView is a view template in the context of current controller. It has empty model
   </p>
   @partialView("partialView",model)
   <p>
@@ -66,7 +69,9 @@
   </p>
   @partialView("partialView",model,"partialViewId")
 </div>
+
 <hr/>
+
 <div>
   <p>
     <strong>partialView view with model</strong><br/>

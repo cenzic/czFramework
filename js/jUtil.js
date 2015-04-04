@@ -40,6 +40,14 @@
       },
       toArray: function(args){
         return Array.prototype.slice.apply(args);
+      },
+      isInDom: function(element){
+        if(!element) return false;
+        var p = element;
+        while(p = p.parentNode){
+          if(p==document) return true;
+        }
+        return false;
       }
   };
   function s4() {

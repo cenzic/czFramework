@@ -2,14 +2,15 @@
  *
  */
 (function($){
+  var log = $.log.init("partial","warn");
   //adding new helper functions to view rendering
   $.jFormat.addHelper({
     /**
      * Render partial will create an wrapper element to be render later.
      */
     renderPartial : function() {
-      console.log("renderPartial called");
       var route = parseRenderPartialArgs(arguments);
+      log.debug("renderPartial: route %j", route);
       var partial = new PartialView(route);
       return partial.getWrapper();
     },
@@ -20,22 +21,9 @@
      */
     partialView : function() {
       var route = parsePartialViewArgs(arguments);
-      console.log("partialView: %s", JSON.stringify(route));
-      // var out = "$.jFormat(\"@views/" + route.controller + "/" +
-      // route.action + "\"," + JSON.stringify(route.params)+")";
-      var id = $.util.guid();
-      if (this == route.model) {
-        var out = "$.jFormat(\"@views/" + route.controller + "/" + route.action
-            + "\", @@model)";
-      } else {
-        this[id] = route.model;
-        var out = "$.jFormat(\"@views/" + route.controller + "/" + route.action
-            + "\", @model." + id + ")";
-      }
+      log.debug("partialView | route: %j", route);
       var partial = new PartialView(route);
-      var out = partial.preload(out);
-      console.log("partialView | out: %s", out);
-      return out;
+      return partial.getWrapper();
     }
   });
 
@@ -64,7 +52,7 @@
       },
       postRender: function(id){
         if(!id) return;
-        console.log("postRender, id: %s", id);
+        log.debug("postRender, id: %s", id);
         if(id == $.jf.defaultOptions.container){
           loadingPartial();
         }
@@ -100,26 +88,40 @@
     },
     stopRefresh: this.cancelRefresh,
     refresh: function(model){
+      if(!this.isActive()) return;
       this.setLoading();
-      viewRender(this.route,model,function(content){
-        console.log("renderPartialPostHandler | callback id: %s", this.id);
+      $.jf.viewRender(this.route,model,function(content){
+        log.debug("renderPartialPostHandler | callback id: %s", this.id);
         this.setLoaded(content);
       }.bind(this));
     },
     autoRefresh: function(){
+      log.debug("autoRefresh");
       if(this.interval || !this.refreshTime) return;
       this.interval = setInterval(function(){
-        console.log("PartialView.autoRefresh | id: %s", this.id);
+        log.debug("PartialView.autoRefresh | id: %s", this.id);
+        //check if element still in the dom, if not remove the partial
+        if(!this.isActive()) return;
         renderPartialPostHandler(this.id);
         this.wrapper.removeClass("refresh_off");
         this.wrapper.addClass("refresh_on");
       }.bind(this),this.refreshTime);
     },
+    isActive: function(){
+      this.wrapper = $("#"+this.id);
+      if(!$.util.isInDom(this.wrapper.get(0))){
+        log.info("partial no longer in dom, clean it up");
+        if(this.interval) clearInterval(this.interval);
+        delete partialList[this.id];
+        return false;
+      }
+      return true;
+    },
     getWrapper: function(){
       return this.wrapper.get(0).outerHTML;
     },
     setLoading: function(){
-      console.log("PartialView.setLoading");
+      log.debug("PartialView.setLoading");
       // update wrapper to point to the rendered dom element.
       this.wrapper = $("#"+this.id);
       this.wrapper.addClass("loading");
@@ -128,7 +130,7 @@
 
     },
     setLoaded: function(html){
-      // console.log("PartialView.setLoaded: htlm: %s", html);
+      // log.debug("PartialView.setLoaded: htlm: %s", html);
       // this.wrapper = $("#"+this.id);
       this.wrapper.addClass("loaded");
       this.wrapper.removeClass("loading");
@@ -144,7 +146,7 @@
   }
 //=============================== private function ==========================================
   function createWrapper(id){
-    console.log("createWrapper | id: %s", id);
+    log.debug("createWrapper | id: %s", id);
     wrapper = $("<div>");
     wrapper.attr("id",id);
     wrapper.addClass("partial_view");
@@ -156,20 +158,51 @@
    */
   function loadingPartial(id){
     if(id){
-      console.log("loadingPartial with id: %s", id);
+      log.debug("loadingPartial with id: %s", id);
       renderPartialPostHandler(id);
     }
     else{
-      console.log("loading all partial");
+      log.debug("loading all partial");
       for(var i in partialList){
         if(!partialList[i].isRendered) renderPartialPostHandler(i);
       }
     }
   }
 
+  function parseRenderPartialArgs(args){
+    var route = {
+      id: "",
+      action: 'index',
+      controller: $.jf.currentControllerName,
+      params: {},
+      refreshTime: 0
+    }
+
+
+    if(typeof(args[0])=="object"){
+      for(var i in route){
+        if(args[0][i]) route[i] = args[0][i];
+      }
+    }
+    else{
+      if(args.length>0){
+        route.action = args[0];
+        if(typeof(args[1]) == "string"){
+          route.controller = args[1];
+          route.params = args[2] || {};
+          route.refreshTime = args[3] || 0;
+        }else{
+          route.params = args[1] || {};
+          route.refreshTime = args[2] || 0;
+        }
+      }
+
+    }
+    return route;
+  }
 
   function parsePartialViewArgs(args){
-    console.log("parsePartialViewArgs");
+    log.debug("parsePartialViewArgs");
     var route = {
       id: "",
       action: 'index',
@@ -204,49 +237,19 @@
    * @param id
    */
   function renderPartialPostHandler(id){
-    console.log("renderPartialPostHandler | id: %s",id);
+    log.debug("renderPartialPostHandler | id: %s",id);
     var partial = partialList[id];
     partial.setLoading();
-    $.jf.viewRender(partial.route,null,function(content){
-      // console.log("renderPartialPostHandler callback: %s", content);
-      console.log("renderPartialPostHandler | callback id: %s", id);
+    $.jf.viewRender(partial.route,partial.route.model,function(content){
+      // log.debug("renderPartialPostHandler callback: %s", content);
+      log.debug("renderPartialPostHandler | callback id: %s", id);
       partial.setLoaded(content);
       if(partial.refreshTime) {
-        console.log("call autoRefresh for Id: %s", id);
+        log.debug("call autoRefresh for Id: %s", id);
         partial.autoRefresh();
       }
     });
   }
 
-  function parseRenderPartialArgs(args){
-    var route = {
-      id: "",
-      action: 'index',
-      controller: $.jf.currentControllerName,
-      params: {},
-      refreshTime: 0
-    }
 
-
-    if(typeof(args[0])=="object"){
-      for(var i in route){
-        if(args[0][i]) route[i] = args[0][i];
-      }
-    }
-    else{
-      if(args.length>0){
-        route.action = args[0];
-        if(typeof(args[1]) == "string"){
-          route.controller = args[1];
-          route.params = args[2] || {};
-          route.refreshTime = args[3] || 0;
-        }else{
-          route.params = args[1] || {};
-          route.refreshTime = args[2] || 0;
-        }
-      }
-
-    }
-    return route;
-  }
 })(jQuery)

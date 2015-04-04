@@ -3,7 +3,7 @@
  * page.
  */
 (function($){
-  var log = $.log.init("jFramework");
+  var log = $.log.init("jFramework","warn");
   var defaultOptions = {
     basePath: (function(){
       var path = window.location.pathname;
@@ -42,14 +42,17 @@
 
       // register window hash change event
       $(window).bind("hashchange",function(){
-        if(cancelHashChange) return;
-        console.log("hashchange");
+        log.debug("hashchange");
+        if(cancelHashChange) {
+          log.debug("cancelHashChange");
+          return;
+        }
         viewRender(getRoute());
       });
 
       // get route and initialize jFormat.
       var route = getRoute();
-      console.log("route: %s", JSON.stringify(route));
+      log.debug("route: %s", JSON.stringify(route));
       $.jFormat.init({
           baseUrl: route.baseUrl
       });
@@ -57,11 +60,15 @@
       //adding custom helper functions
       var helperSrc = route.baseUrl + "/js/helpers.js";
       var partialSrc = route.baseUrl + "/js/partial.js";
-      var loadScript = sync(function(){
+      var syncCount = 2;
+      var loadScript = function(){
+        syncCount--;
+        log.debug("reduce syncCount: %s", syncCount);
+        if(syncCount>0) return;
         $("#page_header").jFormat("#page_header_template");
         $("#page_footer").jFormat("#page_footer_template");
         viewRender(route);
-      })
+      };
       addScript(partialSrc, loadScript);
       addScript(helperSrc, loadScript);
     },
@@ -70,7 +77,7 @@
      * object contains all actions belongs to a controller.
      */
     controller: function(actions){
-      console.log("controller called");
+      log.debug("controller called");
       controllers[currentControllerName] = actions;
     },
     ctrl:{
@@ -82,7 +89,7 @@
      * wrapper to render a template directly from an action
      */
     renderTemplate: function(templateName, model){
-      console.log("renderTemplate called");
+      log.debug("renderTemplate called");
       var route = getRoute(templateName);
       return function() {
         viewRender(route,model);
@@ -92,15 +99,16 @@
      * calling helper template from an action
      */
     helperTemplate: function(helperName,model){
-      console.log("helperTemplate called");
+      log.debug("helperTemplate | helperName: %s", helperName);
       return function(){
         var template = "@templates/"+helperName;
         var id = $.util.guid();
         var wrapper = $("<div>");
         wrapper.attr("id",id);
-        $("#"+defaultOptions.container).append(wrapper);
+        var container = $("#"+defaultOptions.container);
+        container.html("");
+        container.append(wrapper);
         wrapper.jFormat(template, model, function(formatted){
-          console.log("formatted: %s", formatted);
           $("#"+id).html(formatted);
         });
       }
@@ -110,7 +118,7 @@
      * Register helper templates to use shared accross the site.
      */
     registerHelperTemplate: function(helperTemplates){
-      console.log("registerHelperTemplate");
+      log.debug("registerHelperTemplate");
     },
 
     // ============================== Jquery Ajax wrapper
@@ -119,7 +127,7 @@
     get: function(){
       var args = parseArguments(arguments);
       var override = function(d,status,ajax){
-        console.log("override success | template: %s", ajax.template);
+        log.debug("override success | template: %s", ajax.template);
         var ret = args.success(d,status,ajax);
         processAction(ret,ajax.template);
       }
@@ -184,7 +192,7 @@
    * handle custom form submission
    */
   function formSubmitHandler(event){
-    console.log("formSubmitHandler");
+    log.debug("formSubmitHandler");
     event.preventDefault();
     var form = event.target || event.srcElement;
     var route = getFormRoute(form);
@@ -220,7 +228,7 @@
    */
   function getFormRoute(form){
     var hash = getHashFromUrl(form.action);
-    console.log("getFormRoute | hash: %s", hash);
+    log.debug("getFormRoute | hash: %s", hash);
     var route = getRoute(hash);
     var params = {};
     for(var i=0;i<form.elements.length;i++){
@@ -231,7 +239,7 @@
       var value = e.value;
       updateParamItem(params,key,value,false);
     }
-    console.log("params: %s", JSON.stringify(params));
+    log.debug("params: %s", JSON.stringify(params));
     $.extend(route.params,params);
     if(form.method.toLowerCase() == "get"){
       $.extend(route.getParams,params);
@@ -240,7 +248,7 @@
       // create post params
       route.postParams = params;
     }
-    console.log("updated route: %s", JSON.stringify(route));
+    log.debug("updated route: %s", JSON.stringify(route));
     return route;
   }
   /**
@@ -285,7 +293,7 @@
    * callback
    */
   function viewRender(route, model, callback){
-    console.log("viewRender: %s", JSON.stringify(route));
+    log.debug("viewRender: %j", route);
     var template = getTemplate(route);
     loadController(route.controller, function(){
       var ret = model;
@@ -308,7 +316,7 @@
    * @param formmated
    */
   function postRender(formmated){
-    console.log("postRender");
+    log.debug("postRender");
     var jObj = $(this);
     // adding handler for forms
     jObj.find("form").bind("submit",formSubmitHandler);
@@ -316,12 +324,12 @@
     $.partial.postRender(id);
   }
   function processAction(ret,template,route,callback){
-    console.log("processAction ret: %s, callback: %s", typeof(ret), typeof(callback));
+    log.debug("processAction ret: %s, callback: %s", typeof(ret), typeof(callback));
     var model = {};
     // renderTemplate for helperTemplate
     var type=typeof(ret);
     if(type == "function"){
-      console.log("type==function calling function");
+      log.debug("type==function calling function");
       ret(route);
     }
     else{
@@ -329,19 +337,19 @@
         if(ret.success && typeof(ret.success)=="function"){// this is
                                   // jquery
                                   // ajax
-          console.log("set template: %s", template);
+          log.debug("set template: %s", template);
           ret.template = template;
           return;
         }
-        console.log("type==object update model");
+        log.debug("type==object update model");
         model = ret;
       }
       else if(type == "string"){// assume it is text.
-        console.log("type==string update template")
+        log.debug("type==string update template")
         template = ret;
       }
       else if(ret===undefined){
-        console.log("container: %s, template: %s, model: %s",defaultOptions.container, template, JSON.stringify(model))
+        log.debug("container: %s, template: %s, model: %s",defaultOptions.container, template, JSON.stringify(model))
       }
       else if(ret===null){
         return;
@@ -400,7 +408,7 @@
   function loadController(controllerName, callback){
     $.jf.currentControllerName = currentControllerName = controllerName;
     if(controllers[controllerName]!=undefined) {
-      // console.log("controller already loaded");
+      // log.debug("controller already loaded");
       callback();
       return;
     }
@@ -413,11 +421,14 @@
     });
   }
 
-  function addScript(src,callback){
+  function addScript(src, callback){
     var script = document.createElement("script");
     script.type="text/javascript";
     script.src = src;
-    script.onload = callback;
+    script.onload = function(){
+      script.remove();
+      callback();
+    }
     document.head.appendChild(script);
   }
   /**
@@ -435,9 +446,10 @@
    * controller/action?param1=value1&param2=value2
    */
   function getRoute(hash){
+    log.debug("getRoute: %s", hash);
     var hash = hash || window.location.hash.substring(1);
     if(!hash) {
-      console.log("hash is not defined use defaultRoute: %s", JSON.stringify(defaultRoute));
+      log.debug("hash is not defined use defaultRoute: %j", defaultRoute);
       return defaultRoute;
     }
     var i = hash.indexOf("?");
@@ -451,7 +463,6 @@
     }
 
     var pathArr = path.split('/');
-    console.log("path: %s", path);
     if(pathArr.length==1){
       route.controller = currentControllerName;
       route.action = pathArr[0] || route.action;
@@ -460,7 +471,6 @@
       route.action = pathArr[1] || route.action;
     }
     route.params = getParams(paramStr);
-    console.log("route: %s", JSON.stringify(route));
     return route;
   }
 
@@ -498,20 +508,6 @@
     var action = route.action || defaultOptions.action;
 
     return "@" + "views" + "/" + controller + "/" + action;
-  }
-
-  var syncCount = 0;
-  function sync(callback, args){
-    syncCount++;
-    console.log("get here");
-    return function(){
-      console.log("get here");
-      log.debug("syncCount: %s", syncCount);
-      syncCount--;
-      if(syncCount==0){
-        callback.call(this, args);
-      }
-    }
   }
 
 })(jQuery);
